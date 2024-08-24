@@ -14,11 +14,11 @@ import java.sql.ResultSet;
  *
  * @author TEST
  */
-public class SignUp extends javax.swing.JFrame {
+public class Login extends javax.swing.JFrame {
 
 private void clearField() {
     txt_username.setText(null);
-    txt_contact_no.setText(null);
+    
     txt_password.setText(null);
     txt_conf_password.setText(null);
 }
@@ -26,7 +26,7 @@ private void clearField() {
 /**
  * Creates new form SignUp
  */
-public SignUp() {
+public Login() {
     initComponents();
     setIconImage(Toolkit.getDefaultToolkit().getImage(getClass().getResource("icons/multi_app_icon.jpg"))); //FOR ICON 
 }
@@ -55,45 +55,14 @@ public static int getUser_Contact() {
 }
 
 //TO GET USER DATA FOR SIGNUP
-public void SignUp() {
-    String name = txt_username.getText();
-    String contact = txt_contact_no.getText();
-    String pwd = txt_password.getText();
-    String conf_pwd = txt_conf_password.getText();
 
-    try {
-        Connection con = DbConn.getConnection();
-        PreparedStatement pst = con.prepareStatement("insert into mpa.users(name,contact,password) values(?,?,?)");
-        pst.setString(1, name);
-        pst.setString(2, contact);
-        pst.setString(3, pwd);
-
-        int rowcount = pst.executeUpdate();
-        if (rowcount > 0) {
-            if (conf_pwd.equals(pwd)) {
-                JOptionPane.showMessageDialog(this, "You have successfully signed up " + name, "SUCCESS", JOptionPane.INFORMATION_MESSAGE, icon);
-                clearField();
-            } else {
-                JOptionPane.showMessageDialog(this, "Enter the same password!!!!", "WARNING", JOptionPane.WARNING_MESSAGE);
-                txt_conf_password.setText(null);
-            }
-        } else {
-            JOptionPane.showMessageDialog(this, "SignUp unsuccessful...Try again later", "WARNING", JOptionPane.WARNING_MESSAGE);
-            clearField();
-        }
-
-    } catch (Exception e) {
-        e.printStackTrace();
-    }
-}
 
 //TO CHECK IF FIELDS ARE NOT EMPTY
 public boolean emptyFields() {
     String username = txt_username.getText();
     String pwd = txt_password.getText();
-    String contact = txt_contact_no.getText();
-    String conf_pwd = txt_conf_password.getText();
-
+   
+    
     if (username.equals("")) {      //THIS  IF  BLOCK  IS  TO  CHECK  IF  USERNAME  FIELD  IS  EMPTY
         JOptionPane.showMessageDialog(null, "Please Enter Your Username !!", "WARNING", JOptionPane.WARNING_MESSAGE);    //THIS IS HOW WE GIVE WARNING MSG
         return false;
@@ -101,34 +70,17 @@ public boolean emptyFields() {
         JOptionPane.showMessageDialog(null, "Please Enter Your Username Properly!!", "WARNING", JOptionPane.WARNING_MESSAGE);
         return false;
     }
-    if (contact.equals("")) {
-        JOptionPane.showMessageDialog(null, "Please Enter Your Contact", "WARNING", JOptionPane.WARNING_MESSAGE);
-        return false;
-    }
+    
     if (pwd.equals("")) {
         JOptionPane.showMessageDialog(null, "Please Enter Your Password", "WARNING", JOptionPane.WARNING_MESSAGE);
         return false;
     }
-    if (conf_pwd.equals("")) {
-        JOptionPane.showMessageDialog(null, "Please Enter Your Confirm Password", "WARNING", JOptionPane.WARNING_MESSAGE);
-        return false;
-    }
+    
 
     return true;
 }
 
-//TO CHECK IF THE CONTACT NUMBER IS OF TEN DIGITS
-public boolean digitCheck() {
-    boolean isSame = false;
-    String regex = "\\d{10}";
-    String phone = txt_contact_no.getText();
-    if (phone.matches(regex)) {
-        isSame = true;
-    } else {
-        isSame = false;
-    }
-    return isSame;
-}
+
 
 //TO CHECK IF THE USER ENTERS DIFFERENT USERNAME
 public boolean duplicateUsername() {
@@ -152,24 +104,7 @@ public boolean duplicateUsername() {
 }
 
 //TO CHECK IF THE USER ENTERS DIFFERENT CONTACT
-public boolean duplicateContact() {
-    boolean isSame = false;
-    String phone = txt_contact_no.getText();
-    try {
-        Connection con = DbConn.getConnection();
-        PreparedStatement pst = con.prepareStatement("SELECT * FROM mpa.users where contact=? ");
-        pst.setString(1, phone);
-        ResultSet rs = pst.executeQuery();
-        if (rs.next()) {
-            isSame = true;
-        } else {
-            isSame = false;
-        }
-    } catch (Exception e) {
-        e.printStackTrace();
-    }
-    return isSame;
-}
+
 
 /**
  * This method is called from within the constructor to initialize the form.
@@ -184,13 +119,9 @@ public boolean duplicateContact() {
         jLabel1 = new javax.swing.JLabel();
         jPanel1 = new javax.swing.JPanel();
         exit_btn = new javax.swing.JButton();
-        lbl_register = new javax.swing.JLabel();
         jLabel2 = new javax.swing.JLabel();
         txt_username = new app.bolivia.swing.JCTextField();
         jLabel3 = new javax.swing.JLabel();
-        txt_contact_no = new app.bolivia.swing.JCTextField();
-        jLabel4 = new javax.swing.JLabel();
-        jLabel5 = new javax.swing.JLabel();
         jLabel6 = new javax.swing.JLabel();
         jLabel7 = new javax.swing.JLabel();
         jLabel8 = new javax.swing.JLabel();
@@ -225,11 +156,6 @@ public boolean duplicateContact() {
             }
         });
 
-        lbl_register.setFont(new java.awt.Font("Segoe UI", 1, 24)); // NOI18N
-        lbl_register.setForeground(new java.awt.Color(255, 255, 255));
-        lbl_register.setHorizontalAlignment(javax.swing.SwingConstants.CENTER);
-        lbl_register.setText("SIGNUP");
-
         jLabel2.setFont(new java.awt.Font("Segoe UI", 0, 14)); // NOI18N
         jLabel2.setForeground(new java.awt.Color(255, 255, 255));
         jLabel2.setText("Username");
@@ -243,19 +169,6 @@ public boolean duplicateContact() {
         jLabel3.setHorizontalAlignment(javax.swing.SwingConstants.CENTER);
         jLabel3.setIcon(new javax.swing.ImageIcon(getClass().getResource("/icons/icons8_Account_50px.png"))); // NOI18N
 
-        txt_contact_no.setBackground(new java.awt.Color(51, 51, 255));
-        txt_contact_no.setBorder(javax.swing.BorderFactory.createMatteBorder(0, 0, 2, 0, new java.awt.Color(255, 255, 255)));
-        txt_contact_no.setForeground(new java.awt.Color(255, 255, 255));
-        txt_contact_no.setPhColor(new java.awt.Color(255, 255, 255));
-        txt_contact_no.setPlaceholder("Enter Your Contact No");
-
-        jLabel4.setFont(new java.awt.Font("Segoe UI", 0, 14)); // NOI18N
-        jLabel4.setForeground(new java.awt.Color(255, 255, 255));
-        jLabel4.setText("Contact No");
-
-        jLabel5.setHorizontalAlignment(javax.swing.SwingConstants.CENTER);
-        jLabel5.setIcon(new javax.swing.ImageIcon(getClass().getResource("/icons/icons8_Google_Mobile_50px.png"))); // NOI18N
-
         jLabel6.setFont(new java.awt.Font("Segoe UI", 0, 14)); // NOI18N
         jLabel6.setForeground(new java.awt.Color(255, 255, 255));
         jLabel6.setText("Password");
@@ -268,9 +181,9 @@ public boolean duplicateContact() {
 
         jLabel9.setFont(new java.awt.Font("Segoe UI", 0, 14)); // NOI18N
         jLabel9.setForeground(new java.awt.Color(255, 255, 255));
-        jLabel9.setText("Confirm Password");
+        jLabel9.setText("Login Key");
 
-        btn_signup.setText("SIGNUP");
+        btn_signup.setText("LOGIN");
         btn_signup.setFont(new java.awt.Font("Roboto Medium", 1, 15)); // NOI18N
         btn_signup.addActionListener(new java.awt.event.ActionListener() {
             public void actionPerformed(java.awt.event.ActionEvent evt) {
@@ -295,7 +208,7 @@ public boolean duplicateContact() {
         txt_conf_password.setBorder(javax.swing.BorderFactory.createMatteBorder(0, 0, 2, 0, new java.awt.Color(255, 255, 255)));
         txt_conf_password.setForeground(new java.awt.Color(255, 255, 255));
         txt_conf_password.setPhColor(new java.awt.Color(255, 255, 255));
-        txt_conf_password.setPlaceholder("Confirm Your Password");
+        txt_conf_password.setPlaceholder("Enter Your Login Key");
         txt_conf_password.addActionListener(new java.awt.event.ActionListener() {
             public void actionPerformed(java.awt.event.ActionEvent evt) {
                 txt_conf_passwordActionPerformed(evt);
@@ -330,15 +243,12 @@ public boolean duplicateContact() {
                     .addGroup(jPanel1Layout.createSequentialGroup()
                         .addGroup(jPanel1Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
                             .addComponent(jLabel3, javax.swing.GroupLayout.PREFERRED_SIZE, 48, javax.swing.GroupLayout.PREFERRED_SIZE)
-                            .addComponent(jLabel5, javax.swing.GroupLayout.PREFERRED_SIZE, 48, javax.swing.GroupLayout.PREFERRED_SIZE)
                             .addComponent(jLabel7, javax.swing.GroupLayout.PREFERRED_SIZE, 48, javax.swing.GroupLayout.PREFERRED_SIZE)
                             .addComponent(jLabel8, javax.swing.GroupLayout.PREFERRED_SIZE, 48, javax.swing.GroupLayout.PREFERRED_SIZE))
                         .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.UNRELATED)
                         .addGroup(jPanel1Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING, false)
                             .addComponent(jLabel2)
                             .addComponent(txt_username, javax.swing.GroupLayout.DEFAULT_SIZE, 299, Short.MAX_VALUE)
-                            .addComponent(txt_contact_no, javax.swing.GroupLayout.DEFAULT_SIZE, 299, Short.MAX_VALUE)
-                            .addComponent(jLabel4)
                             .addComponent(jLabel6)
                             .addComponent(jLabel9)
                             .addComponent(txt_password, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
@@ -353,60 +263,48 @@ public boolean duplicateContact() {
                 .addContainerGap(javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
                 .addGroup(jPanel1Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
                     .addGroup(javax.swing.GroupLayout.Alignment.TRAILING, jPanel1Layout.createSequentialGroup()
-                        .addComponent(lbl_register, javax.swing.GroupLayout.PREFERRED_SIZE, 161, javax.swing.GroupLayout.PREFERRED_SIZE)
-                        .addGap(208, 208, 208))
+                        .addComponent(exit_btn, javax.swing.GroupLayout.PREFERRED_SIZE, 42, javax.swing.GroupLayout.PREFERRED_SIZE)
+                        .addGap(89, 89, 89))
                     .addGroup(javax.swing.GroupLayout.Alignment.TRAILING, jPanel1Layout.createSequentialGroup()
                         .addComponent(btn_signup, javax.swing.GroupLayout.PREFERRED_SIZE, 131, javax.swing.GroupLayout.PREFERRED_SIZE)
-                        .addGap(239, 239, 239))
-                    .addGroup(javax.swing.GroupLayout.Alignment.TRAILING, jPanel1Layout.createSequentialGroup()
-                        .addComponent(exit_btn, javax.swing.GroupLayout.PREFERRED_SIZE, 42, javax.swing.GroupLayout.PREFERRED_SIZE)
-                        .addGap(89, 89, 89))))
+                        .addGap(240, 240, 240))))
         );
         jPanel1Layout.setVerticalGroup(
             jPanel1Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
             .addGroup(jPanel1Layout.createSequentialGroup()
                 .addComponent(exit_btn, javax.swing.GroupLayout.PREFERRED_SIZE, 43, javax.swing.GroupLayout.PREFERRED_SIZE)
-                .addGap(2, 2, 2)
+                .addGap(77, 77, 77)
                 .addGroup(jPanel1Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.TRAILING)
                     .addGroup(jPanel1Layout.createSequentialGroup()
-                        .addComponent(lbl_register, javax.swing.GroupLayout.PREFERRED_SIZE, 30, javax.swing.GroupLayout.PREFERRED_SIZE)
-                        .addGap(45, 45, 45)
-                        .addComponent(jLabel2)
-                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                        .addComponent(txt_username, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE))
-                    .addComponent(jLabel3))
-                .addGap(45, 45, 45)
-                .addGroup(jPanel1Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-                    .addGroup(javax.swing.GroupLayout.Alignment.TRAILING, jPanel1Layout.createSequentialGroup()
-                        .addComponent(jLabel4)
-                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                        .addComponent(txt_contact_no, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE))
-                    .addComponent(jLabel5, javax.swing.GroupLayout.Alignment.TRAILING))
-                .addGap(45, 45, 45)
-                .addGroup(jPanel1Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.TRAILING)
-                    .addGroup(jPanel1Layout.createSequentialGroup()
+                        .addGroup(jPanel1Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.TRAILING)
+                            .addGroup(jPanel1Layout.createSequentialGroup()
+                                .addComponent(jLabel2)
+                                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                                .addComponent(txt_username, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE))
+                            .addComponent(jLabel3))
+                        .addGap(43, 43, 43)
                         .addComponent(jLabel6)
-                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.UNRELATED)
+                        .addGap(18, 18, 18)
                         .addComponent(txt_password, javax.swing.GroupLayout.PREFERRED_SIZE, 26, javax.swing.GroupLayout.PREFERRED_SIZE))
                     .addComponent(jLabel7))
-                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.UNRELATED)
+                .addGap(18, 18, 18)
                 .addComponent(checkbox_viewpwd)
-                .addGap(13, 13, 13)
+                .addGap(27, 27, 27)
                 .addGroup(jPanel1Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.TRAILING)
                     .addGroup(jPanel1Layout.createSequentialGroup()
                         .addComponent(jLabel9)
-                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.UNRELATED)
+                        .addGap(18, 18, 18)
                         .addComponent(txt_conf_password, javax.swing.GroupLayout.PREFERRED_SIZE, 26, javax.swing.GroupLayout.PREFERRED_SIZE))
                     .addComponent(jLabel8))
-                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.UNRELATED)
+                .addGap(18, 18, 18)
                 .addComponent(checkbox_confpwd)
-                .addGap(21, 21, 21)
+                .addGap(18, 18, 18)
                 .addComponent(btn_signup, javax.swing.GroupLayout.PREFERRED_SIZE, 45, javax.swing.GroupLayout.PREFERRED_SIZE)
-                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                .addGap(76, 76, 76)
                 .addGroup(jPanel1Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
                     .addComponent(jLabel10, javax.swing.GroupLayout.PREFERRED_SIZE, 18, javax.swing.GroupLayout.PREFERRED_SIZE)
                     .addComponent(btn_login))
-                .addGap(0, 0, Short.MAX_VALUE))
+                .addGap(0, 189, Short.MAX_VALUE))
         );
 
         javax.swing.GroupLayout main_panelLayout = new javax.swing.GroupLayout(main_panel);
@@ -447,24 +345,7 @@ public boolean duplicateContact() {
 
     private void btn_signupActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_btn_signupActionPerformed
         // TODO add your handling code here:
-        if (emptyFields() == true) {
-            if (duplicateUsername() == false) {
-                if (duplicateContact() == false) {
-                    if (digitCheck() == true) {
-                        SignUp();
-                    } else {
-                        JOptionPane.showMessageDialog(this, "Enter 10 digit contact no!!!!", "WARNING", JOptionPane.WARNING_MESSAGE);
-                        txt_contact_no.setText(null);
-                    }
-                } else {
-                    JOptionPane.showMessageDialog(this, "Contact Already exists!!!!", "WARNING", JOptionPane.WARNING_MESSAGE);
-                    txt_contact_no.setText(null);
-                }
-            } else {
-                JOptionPane.showMessageDialog(this, "Username Already exists!!!!", "WARNING", JOptionPane.WARNING_MESSAGE);
-                txt_username.setText(null);
-            }
-        }
+       
     }//GEN-LAST:event_btn_signupActionPerformed
 
     private void checkbox_viewpwdActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_checkbox_viewpwdActionPerformed
@@ -535,17 +416,13 @@ public static void main(String args[]) {
     private javax.swing.JLabel jLabel10;
     private javax.swing.JLabel jLabel2;
     private javax.swing.JLabel jLabel3;
-    private javax.swing.JLabel jLabel4;
-    private javax.swing.JLabel jLabel5;
     private javax.swing.JLabel jLabel6;
     private javax.swing.JLabel jLabel7;
     private javax.swing.JLabel jLabel8;
     private javax.swing.JLabel jLabel9;
     private javax.swing.JPanel jPanel1;
-    private javax.swing.JLabel lbl_register;
     private javax.swing.JPanel main_panel;
     private rojerusan.RSPasswordTextPlaceHolder txt_conf_password;
-    private app.bolivia.swing.JCTextField txt_contact_no;
     private rojerusan.RSPasswordTextPlaceHolder txt_password;
     private app.bolivia.swing.JCTextField txt_username;
     // End of variables declaration//GEN-END:variables
