@@ -4,6 +4,7 @@
  */
 
 import java.awt.Toolkit;
+import java.security.MessageDigest;
 import java.sql.Connection;
 import java.sql.PreparedStatement;
 import javax.swing.Icon;
@@ -18,9 +19,9 @@ public class Login extends javax.swing.JFrame {
 
 private void clearField() {
     txt_username.setText(null);
-    
+
     txt_password.setText(null);
-    txt_conf_password.setText(null);
+    txt_login_key.setText(null);
 }
 
 /**
@@ -37,9 +38,14 @@ Icon icon = new javax.swing.ImageIcon(getClass().getResource("/icons/tick.png"))
 //GLOBAL VARIABLES AND GETTER , SETTER METHOD TO STORE USER NAME AND CONTACT NO FOR FURTHER OPERATIONS IF REQUIRED
 private static String user_name;
 private static int user_contact;
+private static int user_id;
 
 public static void setUser_Name(String name) {
     user_name = name;
+}
+
+public static void setUser_id(int id) {
+    user_id = id;
 }
 
 public static void setUser_Contact(int phone_no) {
@@ -54,15 +60,70 @@ public static int getUser_Contact() {
     return user_contact;
 }
 
-//TO GET USER DATA FOR SIGNUP
+public static int getUser_id() {
+    return user_id;
+}
 
+//TO LOGIN THE USER
+public void login() {
+    String username = txt_username.getText();
+
+    try {
+        Connection con = DbConn.getConnection();
+        PreparedStatement pst = con.prepareStatement("select * from mpa.users where name=?");
+        pst.setString(1, username);
+
+        ResultSet rst = pst.executeQuery();
+        if (rst.next()) {
+            String uname = rst.getString("name");
+            int uid = rst.getInt("id");
+            String pwd = rst.getString("password");
+            String log_key = rst.getString("loginkey");
+            String pass = passwordHash(txt_password.getText());
+            String LogKey = keyHash(txt_login_key.getText());
+
+            Login.setUser_Name(uname);
+            Login.setUser_id(uid);
+
+            if ((pwd.equals(pass)) && (log_key.equals(LogKey))) {
+                JOptionPane.showMessageDialog(this, "Login Successful...." + username, "SUCCESS", JOptionPane.INFORMATION_MESSAGE, icon);
+            } else {
+                JOptionPane.showMessageDialog(this, "Login Unsuccessful....", "ERROR", JOptionPane.ERROR_MESSAGE);
+                clearField();
+            }
+        } else {
+            JOptionPane.showMessageDialog(this, "Login was Unsuccessful....", "ERROR", JOptionPane.ERROR_MESSAGE);
+            clearField();
+        }
+    } catch (Exception e) {
+        e.printStackTrace();
+    }
+}
+
+//FOR HASHING LOGIN KEY
+public static String keyHash(String loginkey) {
+    try {
+        MessageDigest mds = MessageDigest.getInstance("SHA");
+        mds.update(loginkey.getBytes());
+        byte[] rbts = mds.digest();
+        StringBuilder sbc = new StringBuilder();
+
+        for (byte bc : rbts) {
+            sbc.append(String.format("%02x", bc));
+        }
+        return sbc.toString();
+    } catch (Exception e) {
+        e.printStackTrace();
+    }
+    return null;
+}
 
 //TO CHECK IF FIELDS ARE NOT EMPTY
 public boolean emptyFields() {
     String username = txt_username.getText();
     String pwd = txt_password.getText();
-   
-    
+    String key = txt_login_key.getText();
+
     if (username.equals("")) {      //THIS  IF  BLOCK  IS  TO  CHECK  IF  USERNAME  FIELD  IS  EMPTY
         JOptionPane.showMessageDialog(null, "Please Enter Your Username !!", "WARNING", JOptionPane.WARNING_MESSAGE);    //THIS IS HOW WE GIVE WARNING MSG
         return false;
@@ -70,41 +131,35 @@ public boolean emptyFields() {
         JOptionPane.showMessageDialog(null, "Please Enter Your Username Properly!!", "WARNING", JOptionPane.WARNING_MESSAGE);
         return false;
     }
-    
+
     if (pwd.equals("")) {
         JOptionPane.showMessageDialog(null, "Please Enter Your Password", "WARNING", JOptionPane.WARNING_MESSAGE);
         return false;
     }
-    
+    if (key.equals("")) {
+        JOptionPane.showMessageDialog(null, "Please Enter Your Login Key", "WARNING", JOptionPane.WARNING_MESSAGE);
+        return false;
+    }
 
     return true;
 }
 
-
-
-//TO CHECK IF THE USER ENTERS DIFFERENT USERNAME
-public boolean duplicateUsername() {
-    boolean isName = false;
-    String name = txt_username.getText();
+//FOR HASING USER PASSWORD
+public static String passwordHash(String password) {
     try {
-        Connection con = DbConn.getConnection();
-        PreparedStatement pst = con.prepareStatement("SELECT * FROM mpa.users where name=? ");
-        pst.setString(1, name);
-        ResultSet rs = pst.executeQuery();
-        if (rs.next()) {
-            isName = true;
-        } else {
-            isName = false;
+        MessageDigest md = MessageDigest.getInstance("SHA");
+        md.update(password.getBytes());
+        byte[] rbt = md.digest();
+        StringBuilder sb = new StringBuilder();
+        for (byte b : rbt) {
+            sb.append(String.format("%02x", b));
         }
-
+        return sb.toString();
     } catch (Exception e) {
         e.printStackTrace();
     }
-    return isName;
+    return null;
 }
-
-//TO CHECK IF THE USER ENTERS DIFFERENT CONTACT
-
 
 /**
  * This method is called from within the constructor to initialize the form.
@@ -126,13 +181,14 @@ public boolean duplicateUsername() {
         jLabel7 = new javax.swing.JLabel();
         jLabel8 = new javax.swing.JLabel();
         jLabel9 = new javax.swing.JLabel();
-        btn_signup = new rojerusan.RSMaterialButtonCircle();
+        btn_login = new rojerusan.RSMaterialButtonCircle();
         jLabel10 = new javax.swing.JLabel();
-        btn_login = new javax.swing.JButton();
+        btn_signup = new javax.swing.JButton();
         txt_password = new rojerusan.RSPasswordTextPlaceHolder();
-        txt_conf_password = new rojerusan.RSPasswordTextPlaceHolder();
+        txt_login_key = new rojerusan.RSPasswordTextPlaceHolder();
         checkbox_viewpwd = new javax.swing.JCheckBox();
         checkbox_confpwd = new javax.swing.JCheckBox();
+        jLabel4 = new javax.swing.JLabel();
 
         setDefaultCloseOperation(javax.swing.WindowConstants.EXIT_ON_CLOSE);
         setUndecorated(true);
@@ -183,20 +239,20 @@ public boolean duplicateUsername() {
         jLabel9.setForeground(new java.awt.Color(255, 255, 255));
         jLabel9.setText("Login Key");
 
-        btn_signup.setText("LOGIN");
-        btn_signup.setFont(new java.awt.Font("Roboto Medium", 1, 15)); // NOI18N
-        btn_signup.addActionListener(new java.awt.event.ActionListener() {
+        btn_login.setText("LOGIN");
+        btn_login.setFont(new java.awt.Font("Roboto Medium", 1, 15)); // NOI18N
+        btn_login.addActionListener(new java.awt.event.ActionListener() {
             public void actionPerformed(java.awt.event.ActionEvent evt) {
-                btn_signupActionPerformed(evt);
+                btn_loginActionPerformed(evt);
             }
         });
 
         jLabel10.setFont(new java.awt.Font("Segoe UI", 0, 13)); // NOI18N
         jLabel10.setForeground(new java.awt.Color(255, 255, 255));
-        jLabel10.setText("Already have account? Click on ");
+        jLabel10.setText("Don't have account? Click on ");
 
-        btn_login.setText("Login");
-        btn_login.setCursor(new java.awt.Cursor(java.awt.Cursor.HAND_CURSOR));
+        btn_signup.setText("SignUp");
+        btn_signup.setCursor(new java.awt.Cursor(java.awt.Cursor.HAND_CURSOR));
 
         txt_password.setBackground(new java.awt.Color(51, 51, 255));
         txt_password.setBorder(javax.swing.BorderFactory.createMatteBorder(0, 0, 2, 0, new java.awt.Color(255, 255, 255)));
@@ -204,14 +260,14 @@ public boolean duplicateUsername() {
         txt_password.setPhColor(new java.awt.Color(255, 255, 255));
         txt_password.setPlaceholder("Enter Your Password");
 
-        txt_conf_password.setBackground(new java.awt.Color(51, 51, 255));
-        txt_conf_password.setBorder(javax.swing.BorderFactory.createMatteBorder(0, 0, 2, 0, new java.awt.Color(255, 255, 255)));
-        txt_conf_password.setForeground(new java.awt.Color(255, 255, 255));
-        txt_conf_password.setPhColor(new java.awt.Color(255, 255, 255));
-        txt_conf_password.setPlaceholder("Enter Your Login Key");
-        txt_conf_password.addActionListener(new java.awt.event.ActionListener() {
+        txt_login_key.setBackground(new java.awt.Color(51, 51, 255));
+        txt_login_key.setBorder(javax.swing.BorderFactory.createMatteBorder(0, 0, 2, 0, new java.awt.Color(255, 255, 255)));
+        txt_login_key.setForeground(new java.awt.Color(255, 255, 255));
+        txt_login_key.setPhColor(new java.awt.Color(255, 255, 255));
+        txt_login_key.setPlaceholder("Enter Your Login Key");
+        txt_login_key.addActionListener(new java.awt.event.ActionListener() {
             public void actionPerformed(java.awt.event.ActionEvent evt) {
-                txt_conf_passwordActionPerformed(evt);
+                txt_login_keyActionPerformed(evt);
             }
         });
 
@@ -231,49 +287,63 @@ public boolean duplicateUsername() {
             }
         });
 
+        jLabel4.setBackground(new java.awt.Color(255, 255, 255));
+        jLabel4.setFont(new java.awt.Font("Segoe UI", 1, 24)); // NOI18N
+        jLabel4.setForeground(new java.awt.Color(255, 255, 255));
+        jLabel4.setHorizontalAlignment(javax.swing.SwingConstants.CENTER);
+        jLabel4.setText("LOGIN");
+
         javax.swing.GroupLayout jPanel1Layout = new javax.swing.GroupLayout(jPanel1);
         jPanel1.setLayout(jPanel1Layout);
         jPanel1Layout.setHorizontalGroup(
             jPanel1Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-            .addGroup(jPanel1Layout.createSequentialGroup()
-                .addGap(112, 112, 112)
-                .addGroup(jPanel1Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.TRAILING)
-                    .addComponent(checkbox_viewpwd)
-                    .addComponent(checkbox_confpwd)
-                    .addGroup(jPanel1Layout.createSequentialGroup()
-                        .addGroup(jPanel1Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-                            .addComponent(jLabel3, javax.swing.GroupLayout.PREFERRED_SIZE, 48, javax.swing.GroupLayout.PREFERRED_SIZE)
-                            .addComponent(jLabel7, javax.swing.GroupLayout.PREFERRED_SIZE, 48, javax.swing.GroupLayout.PREFERRED_SIZE)
-                            .addComponent(jLabel8, javax.swing.GroupLayout.PREFERRED_SIZE, 48, javax.swing.GroupLayout.PREFERRED_SIZE))
-                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.UNRELATED)
-                        .addGroup(jPanel1Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING, false)
-                            .addComponent(jLabel2)
-                            .addComponent(txt_username, javax.swing.GroupLayout.DEFAULT_SIZE, 299, Short.MAX_VALUE)
-                            .addComponent(jLabel6)
-                            .addComponent(jLabel9)
-                            .addComponent(txt_password, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
-                            .addComponent(txt_conf_password, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)))
-                    .addGroup(jPanel1Layout.createSequentialGroup()
-                        .addComponent(jLabel10)
-                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                        .addComponent(btn_login)
-                        .addGap(29, 29, 29)))
-                .addGap(0, 144, Short.MAX_VALUE))
             .addGroup(javax.swing.GroupLayout.Alignment.TRAILING, jPanel1Layout.createSequentialGroup()
-                .addContainerGap(javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
+                .addContainerGap(238, Short.MAX_VALUE)
                 .addGroup(jPanel1Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
                     .addGroup(javax.swing.GroupLayout.Alignment.TRAILING, jPanel1Layout.createSequentialGroup()
+                        .addComponent(jLabel4, javax.swing.GroupLayout.PREFERRED_SIZE, 147, javax.swing.GroupLayout.PREFERRED_SIZE)
+                        .addGap(99, 99, 99)
                         .addComponent(exit_btn, javax.swing.GroupLayout.PREFERRED_SIZE, 42, javax.swing.GroupLayout.PREFERRED_SIZE)
                         .addGap(89, 89, 89))
                     .addGroup(javax.swing.GroupLayout.Alignment.TRAILING, jPanel1Layout.createSequentialGroup()
-                        .addComponent(btn_signup, javax.swing.GroupLayout.PREFERRED_SIZE, 131, javax.swing.GroupLayout.PREFERRED_SIZE)
+                        .addComponent(btn_login, javax.swing.GroupLayout.PREFERRED_SIZE, 131, javax.swing.GroupLayout.PREFERRED_SIZE)
                         .addGap(240, 240, 240))))
+            .addGroup(jPanel1Layout.createSequentialGroup()
+                .addGroup(jPanel1Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+                    .addGroup(jPanel1Layout.createSequentialGroup()
+                        .addGap(112, 112, 112)
+                        .addGroup(jPanel1Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.TRAILING)
+                            .addComponent(checkbox_viewpwd)
+                            .addComponent(checkbox_confpwd)
+                            .addGroup(jPanel1Layout.createSequentialGroup()
+                                .addGroup(jPanel1Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+                                    .addComponent(jLabel3, javax.swing.GroupLayout.PREFERRED_SIZE, 48, javax.swing.GroupLayout.PREFERRED_SIZE)
+                                    .addComponent(jLabel7, javax.swing.GroupLayout.PREFERRED_SIZE, 48, javax.swing.GroupLayout.PREFERRED_SIZE)
+                                    .addComponent(jLabel8, javax.swing.GroupLayout.PREFERRED_SIZE, 48, javax.swing.GroupLayout.PREFERRED_SIZE))
+                                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.UNRELATED)
+                                .addGroup(jPanel1Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING, false)
+                                    .addComponent(jLabel2)
+                                    .addComponent(txt_username, javax.swing.GroupLayout.DEFAULT_SIZE, 299, Short.MAX_VALUE)
+                                    .addComponent(jLabel6)
+                                    .addComponent(jLabel9)
+                                    .addComponent(txt_password, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
+                                    .addComponent(txt_login_key, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)))))
+                    .addGroup(jPanel1Layout.createSequentialGroup()
+                        .addGap(161, 161, 161)
+                        .addComponent(jLabel10)
+                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.UNRELATED)
+                        .addComponent(btn_signup)))
+                .addGap(0, 0, Short.MAX_VALUE))
         );
         jPanel1Layout.setVerticalGroup(
             jPanel1Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
             .addGroup(jPanel1Layout.createSequentialGroup()
-                .addComponent(exit_btn, javax.swing.GroupLayout.PREFERRED_SIZE, 43, javax.swing.GroupLayout.PREFERRED_SIZE)
-                .addGap(77, 77, 77)
+                .addGroup(jPanel1Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+                    .addComponent(exit_btn, javax.swing.GroupLayout.PREFERRED_SIZE, 43, javax.swing.GroupLayout.PREFERRED_SIZE)
+                    .addGroup(jPanel1Layout.createSequentialGroup()
+                        .addGap(41, 41, 41)
+                        .addComponent(jLabel4, javax.swing.GroupLayout.PREFERRED_SIZE, 43, javax.swing.GroupLayout.PREFERRED_SIZE)))
+                .addGap(63, 63, 63)
                 .addGroup(jPanel1Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.TRAILING)
                     .addGroup(jPanel1Layout.createSequentialGroup()
                         .addGroup(jPanel1Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.TRAILING)
@@ -294,17 +364,17 @@ public boolean duplicateUsername() {
                     .addGroup(jPanel1Layout.createSequentialGroup()
                         .addComponent(jLabel9)
                         .addGap(18, 18, 18)
-                        .addComponent(txt_conf_password, javax.swing.GroupLayout.PREFERRED_SIZE, 26, javax.swing.GroupLayout.PREFERRED_SIZE))
+                        .addComponent(txt_login_key, javax.swing.GroupLayout.PREFERRED_SIZE, 26, javax.swing.GroupLayout.PREFERRED_SIZE))
                     .addComponent(jLabel8))
                 .addGap(18, 18, 18)
                 .addComponent(checkbox_confpwd)
                 .addGap(18, 18, 18)
-                .addComponent(btn_signup, javax.swing.GroupLayout.PREFERRED_SIZE, 45, javax.swing.GroupLayout.PREFERRED_SIZE)
-                .addGap(76, 76, 76)
+                .addComponent(btn_login, javax.swing.GroupLayout.PREFERRED_SIZE, 45, javax.swing.GroupLayout.PREFERRED_SIZE)
+                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.UNRELATED)
                 .addGroup(jPanel1Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
                     .addComponent(jLabel10, javax.swing.GroupLayout.PREFERRED_SIZE, 18, javax.swing.GroupLayout.PREFERRED_SIZE)
-                    .addComponent(btn_login))
-                .addGap(0, 189, Short.MAX_VALUE))
+                    .addComponent(btn_signup))
+                .addGap(0, 0, Short.MAX_VALUE))
         );
 
         javax.swing.GroupLayout main_panelLayout = new javax.swing.GroupLayout(main_panel);
@@ -343,10 +413,12 @@ public boolean duplicateUsername() {
         this.dispose();
     }//GEN-LAST:event_exit_btnActionPerformed
 
-    private void btn_signupActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_btn_signupActionPerformed
+    private void btn_loginActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_btn_loginActionPerformed
         // TODO add your handling code here:
-       
-    }//GEN-LAST:event_btn_signupActionPerformed
+        if (emptyFields() == true) {
+            login();
+        }
+    }//GEN-LAST:event_btn_loginActionPerformed
 
     private void checkbox_viewpwdActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_checkbox_viewpwdActionPerformed
         // TODO add your handling code here:
@@ -357,17 +429,17 @@ public boolean duplicateUsername() {
         }
     }//GEN-LAST:event_checkbox_viewpwdActionPerformed
 
-    private void txt_conf_passwordActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_txt_conf_passwordActionPerformed
+    private void txt_login_keyActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_txt_login_keyActionPerformed
         // TODO add your handling code here:
 
-    }//GEN-LAST:event_txt_conf_passwordActionPerformed
+    }//GEN-LAST:event_txt_login_keyActionPerformed
 
     private void checkbox_confpwdActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_checkbox_confpwdActionPerformed
         // TODO add your handling code here:
         if (checkbox_confpwd.isSelected()) {
-            txt_conf_password.setEchoChar((char) 0);
+            txt_login_key.setEchoChar((char) 0);
         } else {
-            txt_conf_password.setEchoChar('*');
+            txt_login_key.setEchoChar('*');
         }
     }//GEN-LAST:event_checkbox_confpwdActionPerformed
 
@@ -401,14 +473,14 @@ public static void main(String args[]) {
     /* Create and display the form */
     java.awt.EventQueue.invokeLater(new Runnable() {
     public void run() {
-        new SignUp().setVisible(true);
+        new Login().setVisible(true);
     }
     });
 }
 
     // Variables declaration - do not modify//GEN-BEGIN:variables
-    private javax.swing.JButton btn_login;
-    private rojerusan.RSMaterialButtonCircle btn_signup;
+    private rojerusan.RSMaterialButtonCircle btn_login;
+    private javax.swing.JButton btn_signup;
     private javax.swing.JCheckBox checkbox_confpwd;
     private javax.swing.JCheckBox checkbox_viewpwd;
     private javax.swing.JButton exit_btn;
@@ -416,13 +488,14 @@ public static void main(String args[]) {
     private javax.swing.JLabel jLabel10;
     private javax.swing.JLabel jLabel2;
     private javax.swing.JLabel jLabel3;
+    private javax.swing.JLabel jLabel4;
     private javax.swing.JLabel jLabel6;
     private javax.swing.JLabel jLabel7;
     private javax.swing.JLabel jLabel8;
     private javax.swing.JLabel jLabel9;
     private javax.swing.JPanel jPanel1;
     private javax.swing.JPanel main_panel;
-    private rojerusan.RSPasswordTextPlaceHolder txt_conf_password;
+    private rojerusan.RSPasswordTextPlaceHolder txt_login_key;
     private rojerusan.RSPasswordTextPlaceHolder txt_password;
     private app.bolivia.swing.JCTextField txt_username;
     // End of variables declaration//GEN-END:variables

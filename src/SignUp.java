@@ -10,6 +10,7 @@ import java.sql.PreparedStatement;
 import javax.swing.Icon;
 import javax.swing.JOptionPane;
 import java.sql.ResultSet;
+import java.util.Random;
 
 /**
  *
@@ -17,179 +18,211 @@ import java.sql.ResultSet;
  */
 public class SignUp extends javax.swing.JFrame {
 
-    private void clearField() {
-        txt_username.setText(null);
-        txt_contact_no.setText(null);
-        txt_password.setText(null);
-        txt_conf_password.setText(null);
-    }
+private void clearField() {
+    txt_username.setText(null);
+    txt_contact_no.setText(null);
+    txt_password.setText(null);
+    txt_conf_password.setText(null);
+}
 
-    /**
-     * Creates new form SignUp
-     */
-    public SignUp() {
-        initComponents();
-        setIconImage(Toolkit.getDefaultToolkit().getImage(getClass().getResource("icons/multi_app_icon.jpg"))); //FOR ICON 
-    }
+/**
+ * Creates new form SignUp
+ */
+public SignUp() {
+    initComponents();
+    setIconImage(Toolkit.getDefaultToolkit().getImage(getClass().getResource("icons/multi_app_icon.jpg"))); //FOR ICON 
+}
 
 //GLOBAL VARIABLE TO SET THE SUCCESSFUL TICK ICON ON JOPTIONPANE MESSAGE
-    Icon icon = new javax.swing.ImageIcon(getClass().getResource("/icons/tick.png"));
+Icon icon = new javax.swing.ImageIcon(getClass().getResource("/icons/tick.png"));
+
+//RANDOM NUMBER VARIABLES "key" AND "digit"
+private StringBuilder key = new StringBuilder();
+int digit;
 
 //GLOBAL VARIABLES AND GETTER , SETTER METHOD TO STORE USER NAME AND CONTACT NO FOR FURTHER OPERATIONS IF REQUIRED
-    private static String user_name;
-    private static int user_contact;
+private static String user_name;
+private static int user_contact;
 
-    public static void setUser_Name(String name) {
-        user_name = name;
-    }
+public static void setUser_Name(String name) {
+    user_name = name;
+}
 
-    public static void setUser_Contact(int phone_no) {
-        user_contact = phone_no;
-    }
+public static void setUser_Contact(int phone_no) {
+    user_contact = phone_no;
+}
 
-    public static String getUser_Name() {
-        return user_name;
-    }
+public static String getUser_Name() {
+    return user_name;
+}
 
-    public static int getUser_Contact() {
-        return user_contact;
-    }
+public static int getUser_Contact() {
+    return user_contact;
+}
 
 //TO GET USER DATA FOR SIGNUP
-    public void SignUp(String username, String pwd) {
+public void SignUp(String username, String pwd, String logkey) {
+    Random rand = new Random();
+    for (int i = 0; i <= 3; i++) {
+        digit = rand.nextInt(10);
+        key.append(digit);
+    }
+    String contact = txt_contact_no.getText();
+    String idkey = keyHash(key.toString());
+    String conf_pwd = txt_conf_password.getText();
+    String passwd = txt_password.getText();
 
-        String contact = txt_contact_no.getText();
+    try {
+        Connection con = DbConn.getConnection();
+        PreparedStatement pst = con.prepareStatement("insert into mpa.users(name,contact,password,loginkey) values(?,?,?,?)");
+        pst.setString(1, username);
+        pst.setString(2, contact);
+        pst.setString(3, pwd);
+        pst.setString(4, idkey);
 
-        String conf_pwd = txt_conf_password.getText();
-
-        try {
-            Connection con = DbConn.getConnection();
-            PreparedStatement pst = con.prepareStatement("insert into mpa.users(name,contact,password) values(?,?,?)");
-            pst.setString(1, username);
-            pst.setString(2, contact);
-            pst.setString(3, pwd);
-
-            int rowcount = pst.executeUpdate();
-            if (rowcount > 0) {
-                JOptionPane.showMessageDialog(this, "SignUp successful...");
+        int rowcount = pst.executeUpdate();
+        if (rowcount > 0) {
+            if (conf_pwd.equals(passwd)) {
+                JOptionPane.showMessageDialog(this, "SignUp successful..." + username + "\nYour login key is:- " + key, "SUCCESS", JOptionPane.INFORMATION_MESSAGE, icon);
             } else {
-                JOptionPane.showMessageDialog(this, "SignUp unsuccessful...Try again later", "WARNING", JOptionPane.WARNING_MESSAGE);
-                clearField();
+                JOptionPane.showMessageDialog(this, "Enter Same Password!!!!!!!", "WARNING", JOptionPane.WARNING_MESSAGE);
             }
 
-        } catch (Exception e) {
-            e.printStackTrace();
+        } else {
+            JOptionPane.showMessageDialog(this, "SignUp unsuccessful...Try again later", "WARNING", JOptionPane.WARNING_MESSAGE);
+            clearField();
         }
+
+    } catch (Exception e) {
+        e.printStackTrace();
     }
+}
 
 //FOR HASING USER PASSWORD
-    public static String passwordHash(String password) {
-        try {
-            MessageDigest md = MessageDigest.getInstance("MD5");
-            md.update(password.getBytes());
-            byte[] rbt = md.digest();
-            StringBuilder sb = new StringBuilder();
-
-            for (byte b : rbt) {
-                sb.append(String.format("%02x", b));
-            }
-            return sb.toString();
-        } catch (Exception e) {
-            e.printStackTrace();
+public static String passwordHash(String password) {
+    try {
+        MessageDigest md = MessageDigest.getInstance("SHA");
+        md.update(password.getBytes());
+        byte[] rbt = md.digest();
+        StringBuilder sb = new StringBuilder();
+        for (byte b : rbt) {
+            sb.append(String.format("%02x", b));
         }
-        return null;
+        return sb.toString();
+    } catch (Exception e) {
+        e.printStackTrace();
     }
+    return null;
+}
+
+//FOR HASHING LOGIN KEY
+public static String keyHash(String loginkey) {
+    try {
+        MessageDigest mds = MessageDigest.getInstance("SHA");
+        mds.update(loginkey.getBytes());
+        byte[] rbts = mds.digest();
+        StringBuilder sbc = new StringBuilder();
+
+        for (byte bc : rbts) {
+            sbc.append(String.format("%02x", bc));
+        }
+        return sbc.toString();
+    } catch (Exception e) {
+        e.printStackTrace();
+    }
+    return null;
+}
 
 //TO CHECK IF FIELDS ARE NOT EMPTY
-    public boolean emptyFields() {
-        String username = txt_username.getText();
-        String pwd = txt_password.getText();
-        String contact = txt_contact_no.getText();
-        String conf_pwd = txt_conf_password.getText();
+public boolean emptyFields() {
+    String username = txt_username.getText();
+    String pwd = txt_password.getText();
+    String contact = txt_contact_no.getText();
+    String conf_pwd = txt_conf_password.getText();
 
-        if (username.equals("")) {      //THIS  IF  BLOCK  IS  TO  CHECK  IF  USERNAME  FIELD  IS  EMPTY
-            JOptionPane.showMessageDialog(null, "Please Enter Your Username !!", "WARNING", JOptionPane.WARNING_MESSAGE);    //THIS IS HOW WE GIVE WARNING MSG
-            return false;
-        } else if (!username.matches("^(.+)@(\\S+)$")) {       //THIS    else if   BLOCK IS TO CHECK  THAT  EMAIL IS  GIVEN  PROPERLY  IN  ITS  STD  FORMAT
-            JOptionPane.showMessageDialog(null, "Please Enter Your Username Properly!!", "WARNING", JOptionPane.WARNING_MESSAGE);
-            return false;
-        }
-        if (contact.equals("")) {
-            JOptionPane.showMessageDialog(null, "Please Enter Your Contact", "WARNING", JOptionPane.WARNING_MESSAGE);
-            return false;
-        }
-        if (pwd.equals("")) {
-            JOptionPane.showMessageDialog(null, "Please Enter Your Password", "WARNING", JOptionPane.WARNING_MESSAGE);
-            return false;
-        }
-        if (conf_pwd.equals("")) {
-            JOptionPane.showMessageDialog(null, "Please Enter Your Confirm Password", "WARNING", JOptionPane.WARNING_MESSAGE);
-            return false;
-        }
-
-        return true;
+    if (username.equals("")) {      //THIS  IF  BLOCK  IS  TO  CHECK  IF  USERNAME  FIELD  IS  EMPTY
+        JOptionPane.showMessageDialog(null, "Please Enter Your Username !!", "WARNING", JOptionPane.WARNING_MESSAGE);    //THIS IS HOW WE GIVE WARNING MSG
+        return false;
+    } else if (!username.matches("^(.+)@(\\S+)$")) {       //THIS    else if   BLOCK IS TO CHECK  THAT  EMAIL IS  GIVEN  PROPERLY  IN  ITS  STD  FORMAT
+        JOptionPane.showMessageDialog(null, "Please Enter Your Username Properly!!", "WARNING", JOptionPane.WARNING_MESSAGE);
+        return false;
+    }
+    if (contact.equals("")) {
+        JOptionPane.showMessageDialog(null, "Please Enter Your Contact", "WARNING", JOptionPane.WARNING_MESSAGE);
+        return false;
+    }
+    if (pwd.equals("")) {
+        JOptionPane.showMessageDialog(null, "Please Enter Your Password", "WARNING", JOptionPane.WARNING_MESSAGE);
+        return false;
+    }
+    if (conf_pwd.equals("")) {
+        JOptionPane.showMessageDialog(null, "Please Enter Your Confirm Password", "WARNING", JOptionPane.WARNING_MESSAGE);
+        return false;
     }
 
+    return true;
+}
+
 //TO CHECK IF THE CONTACT NUMBER IS OF TEN DIGITS
-    public boolean digitCheck() {
-        boolean isSame = false;
-        String regex = "\\d{10}";
-        String phone = txt_contact_no.getText();
-        if (phone.matches(regex)) {
+public boolean digitCheck() {
+    boolean isSame = false;
+    String regex = "\\d{10}";
+    String phone = txt_contact_no.getText();
+    if (phone.matches(regex)) {
+        isSame = true;
+    } else {
+        isSame = false;
+    }
+    return isSame;
+}
+
+//TO CHECK IF THE USER ENTERS DIFFERENT USERNAME
+public boolean duplicateUsername() {
+    boolean isName = false;
+    String name = txt_username.getText();
+    try {
+        Connection con = DbConn.getConnection();
+        PreparedStatement pst = con.prepareStatement("SELECT * FROM mpa.users where name=? ");
+        pst.setString(1, name);
+        ResultSet rs = pst.executeQuery();
+        if (rs.next()) {
+            isName = true;
+        } else {
+            isName = false;
+        }
+
+    } catch (Exception e) {
+        e.printStackTrace();
+    }
+    return isName;
+}
+
+//TO CHECK IF THE USER ENTERS DIFFERENT CONTACT
+public boolean duplicateContact() {
+    boolean isSame = false;
+    String phone = txt_contact_no.getText();
+    try {
+        Connection con = DbConn.getConnection();
+        PreparedStatement pst = con.prepareStatement("SELECT * FROM mpa.users where contact=? ");
+        pst.setString(1, phone);
+        ResultSet rs = pst.executeQuery();
+        if (rs.next()) {
             isSame = true;
         } else {
             isSame = false;
         }
-        return isSame;
+    } catch (Exception e) {
+        e.printStackTrace();
     }
+    return isSame;
+}
 
-//TO CHECK IF THE USER ENTERS DIFFERENT USERNAME
-    public boolean duplicateUsername() {
-        boolean isName = false;
-        String name = txt_username.getText();
-        try {
-            Connection con = DbConn.getConnection();
-            PreparedStatement pst = con.prepareStatement("SELECT * FROM mpa.users where name=? ");
-            pst.setString(1, name);
-            ResultSet rs = pst.executeQuery();
-            if (rs.next()) {
-                isName = true;
-            } else {
-                isName = false;
-            }
-
-        } catch (Exception e) {
-            e.printStackTrace();
-        }
-        return isName;
-    }
-
-//TO CHECK IF THE USER ENTERS DIFFERENT CONTACT
-    public boolean duplicateContact() {
-        boolean isSame = false;
-        String phone = txt_contact_no.getText();
-        try {
-            Connection con = DbConn.getConnection();
-            PreparedStatement pst = con.prepareStatement("SELECT * FROM mpa.users where contact=? ");
-            pst.setString(1, phone);
-            ResultSet rs = pst.executeQuery();
-            if (rs.next()) {
-                isSame = true;
-            } else {
-                isSame = false;
-            }
-        } catch (Exception e) {
-            e.printStackTrace();
-        }
-        return isSame;
-    }
-
-    /**
-     * This method is called from within the constructor to initialize the form.
-     * WARNING: Do NOT modify this code. The content of this method is always
-     * regenerated by the Form Editor.
-     */
-    @SuppressWarnings("unchecked")
+/**
+ * This method is called from within the constructor to initialize the form.
+ * WARNING: Do NOT modify this code. The content of this method is always
+ * regenerated by the Form Editor.
+ */
+@SuppressWarnings("unchecked")
     // <editor-fold defaultstate="collapsed" desc="Generated Code">//GEN-BEGIN:initComponents
     private void initComponents() {
 
@@ -461,26 +494,29 @@ public class SignUp extends javax.swing.JFrame {
     private void btn_signupActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_btn_signupActionPerformed
         String name = txt_username.getText();
         String password = passwordHash(txt_password.getText());
+
+        String passkey = keyHash(key.toString());
+
 // TODO add your handling code here:
-//        if (emptyFields() == true) {
-//            if (duplicateUsername() == false) {
-//                if (duplicateContact() == false) {
-//                    if (digitCheck() == true) {
-//                        
-//                    } else {
-//                        JOptionPane.showMessageDialog(this, "Enter 10 digit contact no!!!!", "WARNING", JOptionPane.WARNING_MESSAGE);
-//                        txt_contact_no.setText(null);
-//                    }
-//                } else {
-//                    JOptionPane.showMessageDialog(this, "Contact Already exists!!!!", "WARNING", JOptionPane.WARNING_MESSAGE);
-//                    txt_contact_no.setText(null);
-//                }
-//            } else {
-//                JOptionPane.showMessageDialog(this, "Username Already exists!!!!", "WARNING", JOptionPane.WARNING_MESSAGE);
-//                txt_username.setText(null);
-//            }
-//        }
-        SignUp(name, password);
+        if (emptyFields() == true) {
+            if (duplicateUsername() == false) {
+                if (duplicateContact() == false) {
+                    if (digitCheck() == true) {
+                        SignUp(name, password, passkey);
+                    } else {
+                        JOptionPane.showMessageDialog(this, "Enter 10 digit contact no!!!!", "WARNING", JOptionPane.WARNING_MESSAGE);
+                        txt_contact_no.setText(null);
+                    }
+                } else {
+                    JOptionPane.showMessageDialog(this, "Contact Already exists!!!!", "WARNING", JOptionPane.WARNING_MESSAGE);
+                    txt_contact_no.setText(null);
+                }
+            } else {
+                JOptionPane.showMessageDialog(this, "Username Already exists!!!!", "WARNING", JOptionPane.WARNING_MESSAGE);
+                txt_username.setText(null);
+            }
+        }
+
     }//GEN-LAST:event_btn_signupActionPerformed
 
     private void checkbox_viewpwdActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_checkbox_viewpwdActionPerformed
@@ -506,40 +542,40 @@ public class SignUp extends javax.swing.JFrame {
         }
     }//GEN-LAST:event_checkbox_confpwdActionPerformed
 
-    /**
-     * @param args the command line arguments
-     */
-    public static void main(String args[]) {
-        /* Set the Nimbus look and feel */
-        //<editor-fold defaultstate="collapsed" desc=" Look and feel setting code (optional) ">
-        /* If Nimbus (introduced in Java SE 6) is not available, stay with the default look and feel.
+/**
+ * @param args the command line arguments
+ */
+public static void main(String args[]) {
+    /* Set the Nimbus look and feel */
+    //<editor-fold defaultstate="collapsed" desc=" Look and feel setting code (optional) ">
+    /* If Nimbus (introduced in Java SE 6) is not available, stay with the default look and feel.
          * For details see http://download.oracle.com/javase/tutorial/uiswing/lookandfeel/plaf.html 
-         */
-        try {
-            for (javax.swing.UIManager.LookAndFeelInfo info : javax.swing.UIManager.getInstalledLookAndFeels()) {
-                if ("Nimbus".equals(info.getName())) {
-                    javax.swing.UIManager.setLookAndFeel(info.getClassName());
-                    break;
-                }
+     */
+    try {
+        for (javax.swing.UIManager.LookAndFeelInfo info : javax.swing.UIManager.getInstalledLookAndFeels()) {
+            if ("Nimbus".equals(info.getName())) {
+                javax.swing.UIManager.setLookAndFeel(info.getClassName());
+                break;
             }
-        } catch (ClassNotFoundException ex) {
-            java.util.logging.Logger.getLogger(SignUp.class.getName()).log(java.util.logging.Level.SEVERE, null, ex);
-        } catch (InstantiationException ex) {
-            java.util.logging.Logger.getLogger(SignUp.class.getName()).log(java.util.logging.Level.SEVERE, null, ex);
-        } catch (IllegalAccessException ex) {
-            java.util.logging.Logger.getLogger(SignUp.class.getName()).log(java.util.logging.Level.SEVERE, null, ex);
-        } catch (javax.swing.UnsupportedLookAndFeelException ex) {
-            java.util.logging.Logger.getLogger(SignUp.class.getName()).log(java.util.logging.Level.SEVERE, null, ex);
         }
-        //</editor-fold>
-
-        /* Create and display the form */
-        java.awt.EventQueue.invokeLater(new Runnable() {
-            public void run() {
-                new SignUp().setVisible(true);
-            }
-        });
+    } catch (ClassNotFoundException ex) {
+        java.util.logging.Logger.getLogger(SignUp.class.getName()).log(java.util.logging.Level.SEVERE, null, ex);
+    } catch (InstantiationException ex) {
+        java.util.logging.Logger.getLogger(SignUp.class.getName()).log(java.util.logging.Level.SEVERE, null, ex);
+    } catch (IllegalAccessException ex) {
+        java.util.logging.Logger.getLogger(SignUp.class.getName()).log(java.util.logging.Level.SEVERE, null, ex);
+    } catch (javax.swing.UnsupportedLookAndFeelException ex) {
+        java.util.logging.Logger.getLogger(SignUp.class.getName()).log(java.util.logging.Level.SEVERE, null, ex);
     }
+    //</editor-fold>
+
+    /* Create and display the form */
+    java.awt.EventQueue.invokeLater(new Runnable() {
+    public void run() {
+        new SignUp().setVisible(true);
+    }
+    });
+}
 
     // Variables declaration - do not modify//GEN-BEGIN:variables
     private javax.swing.JButton btn_login;
