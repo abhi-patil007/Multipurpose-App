@@ -29,7 +29,7 @@ private void clearField() {
  */
 public Login() {
     initComponents();
-    setIconImage(Toolkit.getDefaultToolkit().getImage(getClass().getResource("icons/multi_app_icon.jpg"))); //FOR ICON 
+    setIconImage(Toolkit.getDefaultToolkit().getImage(getClass().getResource("icons/icon_256x256.jpg"))); //FOR ICON 
 }
 
 //GLOBAL VARIABLE TO SET THE SUCCESSFUL TICK ICON ON JOPTIONPANE MESSAGE
@@ -82,11 +82,16 @@ public void login() {
             String pass = passwordHash(txt_password.getText());
             String LogKey = keyHash(txt_login_key.getText());
 
-            Login.setUser_Name(uname);
-            Login.setUser_id(uid);
-
             if ((pwd.equals(pass)) && (log_key.equals(LogKey))) {
                 JOptionPane.showMessageDialog(this, "Login Successful...." + username, "SUCCESS", JOptionPane.INFORMATION_MESSAGE, icon);
+
+                Login.setUser_Name(uname);
+
+                Login.setUser_id(uid);
+                Dashboard dash = new Dashboard();
+                dash.getDetails(uid);
+                dash.setVisible(true);
+                this.dispose();
             } else {
                 JOptionPane.showMessageDialog(this, "Login Unsuccessful....", "ERROR", JOptionPane.ERROR_MESSAGE);
                 clearField();
@@ -253,6 +258,11 @@ public static String passwordHash(String password) {
 
         btn_signup.setText("SignUp");
         btn_signup.setCursor(new java.awt.Cursor(java.awt.Cursor.HAND_CURSOR));
+        btn_signup.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                btn_signupActionPerformed(evt);
+            }
+        });
 
         txt_password.setBackground(new java.awt.Color(51, 51, 255));
         txt_password.setBorder(javax.swing.BorderFactory.createMatteBorder(0, 0, 2, 0, new java.awt.Color(255, 255, 255)));
@@ -442,6 +452,13 @@ public static String passwordHash(String password) {
             txt_login_key.setEchoChar('*');
         }
     }//GEN-LAST:event_checkbox_confpwdActionPerformed
+
+    private void btn_signupActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_btn_signupActionPerformed
+        // TODO add your handling code here:
+        SignUp signup = new SignUp();
+        signup.setVisible(true);
+        this.dispose();
+    }//GEN-LAST:event_btn_signupActionPerformed
 
 /**
  * @param args the command line arguments

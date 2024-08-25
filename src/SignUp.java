@@ -68,9 +68,10 @@ public void SignUp(String username, String pwd, String logkey) {
         key.append(digit);
     }
     String contact = txt_contact_no.getText();
-    String idkey = keyHash(key.toString());
+
     String conf_pwd = txt_conf_password.getText();
     String passwd = txt_password.getText();
+    String passkey = keyHash(key.toString());
 
     try {
         Connection con = DbConn.getConnection();
@@ -78,12 +79,15 @@ public void SignUp(String username, String pwd, String logkey) {
         pst.setString(1, username);
         pst.setString(2, contact);
         pst.setString(3, pwd);
-        pst.setString(4, idkey);
+        pst.setString(4, passkey);
 
         int rowcount = pst.executeUpdate();
         if (rowcount > 0) {
             if (conf_pwd.equals(passwd)) {
-                JOptionPane.showMessageDialog(this, "SignUp successful..." + username + "\nYour login key is:- " + key, "SUCCESS", JOptionPane.INFORMATION_MESSAGE, icon);
+                JOptionPane.showMessageDialog(this, "SignUp successful..." + username + "\nYour login key is:-  " + key, "SUCCESS", JOptionPane.INFORMATION_MESSAGE, icon);
+                Login login = new Login();
+                login.setVisible(true);
+                this.dispose();
             } else {
                 JOptionPane.showMessageDialog(this, "Enter Same Password!!!!!!!", "WARNING", JOptionPane.WARNING_MESSAGE);
             }
@@ -101,7 +105,7 @@ public void SignUp(String username, String pwd, String logkey) {
 //FOR HASING USER PASSWORD
 public static String passwordHash(String password) {
     try {
-        MessageDigest md = MessageDigest.getInstance("SHA");
+        MessageDigest md = MessageDigest.getInstance("SHA");   //HERE WE HAVE USED SHA-1 ALGORITHM WHICH CONTAINS 40 HEXADECIMAL CHARACTERS 
         md.update(password.getBytes());
         byte[] rbt = md.digest();
         StringBuilder sb = new StringBuilder();
@@ -118,7 +122,7 @@ public static String passwordHash(String password) {
 //FOR HASHING LOGIN KEY
 public static String keyHash(String loginkey) {
     try {
-        MessageDigest mds = MessageDigest.getInstance("SHA");
+        MessageDigest mds = MessageDigest.getInstance("SHA");    //HERE WE HAVE USED SHA-1 ALGORITHM WHICH CONTAINS 40 HEXADECIMAL CHARACTERS 
         mds.update(loginkey.getBytes());
         byte[] rbts = mds.digest();
         StringBuilder sbc = new StringBuilder();
@@ -330,6 +334,11 @@ public boolean duplicateContact() {
 
         btn_login.setText("Login");
         btn_login.setCursor(new java.awt.Cursor(java.awt.Cursor.HAND_CURSOR));
+        btn_login.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                btn_loginActionPerformed(evt);
+            }
+        });
 
         txt_password.setBackground(new java.awt.Color(51, 51, 255));
         txt_password.setBorder(javax.swing.BorderFactory.createMatteBorder(0, 0, 2, 0, new java.awt.Color(255, 255, 255)));
@@ -541,6 +550,13 @@ public boolean duplicateContact() {
             txt_conf_password.setEchoChar('*');
         }
     }//GEN-LAST:event_checkbox_confpwdActionPerformed
+
+    private void btn_loginActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_btn_loginActionPerformed
+        // TODO add your handling code here:
+        Login login = new Login();
+        login.setVisible(true);
+        this.dispose();
+    }//GEN-LAST:event_btn_loginActionPerformed
 
 /**
  * @param args the command line arguments
