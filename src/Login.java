@@ -17,161 +17,161 @@ import java.sql.ResultSet;
  */
 public class Login extends javax.swing.JFrame {
 
-    private void clearField() {
-        txt_username.setText(null);
+private void clearField() {
+    txt_username.setText(null);
 
-        txt_password.setText(null);
-        txt_login_key.setText(null);
-    }
+    txt_password.setText(null);
+    txt_login_key.setText(null);
+}
 
-    /**
-     * Creates new form SignUp
-     */
-    public Login() {
-        initComponents();
-        setIconImage(Toolkit.getDefaultToolkit().getImage(getClass().getResource("icons/icon_256x256.jpg"))); //FOR ICON 
-    }
+/**
+ * Creates new form SignUp
+ */
+public Login() {
+    initComponents();
+    setIconImage(Toolkit.getDefaultToolkit().getImage(getClass().getResource("icons/icon_256x256.jpg"))); //FOR ICON 
+}
 
 //GLOBAL VARIABLE TO SET THE SUCCESSFUL TICK ICON ON JOPTIONPANE MESSAGE
-    Icon icon = new javax.swing.ImageIcon(getClass().getResource("/icons/tick.png"));
+Icon icon = new javax.swing.ImageIcon(getClass().getResource("/icons/tick.png"));
 
 //GLOBAL VARIABLES AND GETTER , SETTER METHOD TO STORE USER NAME AND CONTACT NO FOR FURTHER OPERATIONS IF REQUIRED
-    private static String user_name;
-    private static int user_contact;
-    private static int user_id;
+private static String user_name;
+private static int user_contact;
+private static int user_id;
 
-    public static void setUser_Name(String name) {
-        user_name = name;
-    }
+public static void setUser_Name(String name) {
+    user_name = name;
+}
 
-    public static void setUser_id(int id) {
-        user_id = id;
-    }
+public static void setUser_id(int id) {
+    user_id = id;
+}
 
-    public static void setUser_Contact(int phone_no) {
-        user_contact = phone_no;
-    }
+public static void setUser_Contact(int phone_no) {
+    user_contact = phone_no;
+}
 
-    public static String getUser_Name() {
-        return user_name;
-    }
+public static String getUser_Name() {
+    return user_name;
+}
 
-    public static int getUser_Contact() {
-        return user_contact;
-    }
+public static int getUser_Contact() {
+    return user_contact;
+}
 
-    public static int getUser_id() {
-        return user_id;
-    }
+public static int getUser_id() {
+    return user_id;
+}
 
 //TO LOGIN THE USER
-    public void login() {
-        String username = txt_username.getText();
+public void login() {
+    String username = txt_username.getText();
 
-        try {
-            Connection con = DbConn.getConnection();
-            PreparedStatement pst = con.prepareStatement("select * from mpa.users where name=?");
-            pst.setString(1, username);
+    try {
+        Connection con = DbConn.getConnection();
+        PreparedStatement pst = con.prepareStatement("select * from mpa.users where name=?");
+        pst.setString(1, username);
 
-            ResultSet rst = pst.executeQuery();
-            if (rst.next()) {
-                String uname = rst.getString("name");
-                int uid = rst.getInt("id");
-                String pwd = rst.getString("password");
-                String log_key = rst.getString("loginkey");
-                String pass = passwordHash(txt_password.getText());
-                String LogKey = keyHash(txt_login_key.getText());
+        ResultSet rst = pst.executeQuery();
+        if (rst.next()) {
+            String uname = rst.getString("name");
+            int uid = rst.getInt("id");
+            String pwd = rst.getString("password");
+            String log_key = rst.getString("loginkey");
+            String pass = passwordHash(txt_password.getText());
+            String LogKey = keyHash(txt_login_key.getText());
 
-                if ((pwd.equals(pass)) && (log_key.equals(LogKey))) {
-                    JOptionPane.showMessageDialog(this, "Login Successful...." + username, "SUCCESS", JOptionPane.INFORMATION_MESSAGE, icon);
+            if ((pwd.equals(pass)) && (log_key.equals(LogKey))) {
+                JOptionPane.showMessageDialog(this, "Login Successful...." + username, "SUCCESS", JOptionPane.INFORMATION_MESSAGE, icon);
 
-                    Login.setUser_Name(uname);
+                Login.setUser_Name(uname);
 
-                    Login.setUser_id(uid);
-                    Dashboard dash = new Dashboard();
-                    dash.getDetails(uid);
-                    dash.setVisible(true);
-                    this.dispose();
-                } else {
-                    JOptionPane.showMessageDialog(this, "Login Unsuccessful....", "ERROR", JOptionPane.ERROR_MESSAGE);
-                    clearField();
-                }
+                Login.setUser_id(uid);
+                Dashboard dash = new Dashboard();
+                dash.getDetails(uid);
+                dash.setVisible(true);
+                this.dispose();
             } else {
-                JOptionPane.showMessageDialog(this, "Login was Unsuccessful....", "ERROR", JOptionPane.ERROR_MESSAGE);
+                JOptionPane.showMessageDialog(this, "Login Unsuccessful....", "ERROR", JOptionPane.ERROR_MESSAGE);
                 clearField();
             }
-        } catch (Exception e) {
-            e.printStackTrace();
+        } else {
+            JOptionPane.showMessageDialog(this, "Login was Unsuccessful....", "ERROR", JOptionPane.ERROR_MESSAGE);
+            clearField();
         }
+    } catch (Exception e) {
+        e.printStackTrace();
     }
+}
 
 //FOR HASHING LOGIN KEY
-    public static String keyHash(String loginkey) {
-        try {
-            MessageDigest mds = MessageDigest.getInstance("SHA");
-            mds.update(loginkey.getBytes());
-            byte[] rbts = mds.digest();
-            StringBuilder sbc = new StringBuilder();
+public static String keyHash(String loginkey) {
+    try {
+        MessageDigest mds = MessageDigest.getInstance("SHA");
+        mds.update(loginkey.getBytes());
+        byte[] rbts = mds.digest();
+        StringBuilder sbc = new StringBuilder();
 
-            for (byte bc : rbts) {
-                sbc.append(String.format("%02x", bc));
-            }
-            return sbc.toString();
-        } catch (Exception e) {
-            e.printStackTrace();
+        for (byte bc : rbts) {
+            sbc.append(String.format("%02x", bc));
         }
-        return null;
+        return sbc.toString();
+    } catch (Exception e) {
+        e.printStackTrace();
     }
+    return null;
+}
 
 //TO CHECK IF FIELDS ARE NOT EMPTY
-    public boolean emptyFields() {
-        String username = txt_username.getText();
-        String pwd = txt_password.getText();
-        String key = txt_login_key.getText();
+public boolean emptyFields() {
+    String username = txt_username.getText();
+    String pwd = txt_password.getText();
+    String key = txt_login_key.getText();
 
-        if (username.equals("")) {      //THIS  IF  BLOCK  IS  TO  CHECK  IF  USERNAME  FIELD  IS  EMPTY
-            JOptionPane.showMessageDialog(null, "Please Enter Your Username !!", "WARNING", JOptionPane.WARNING_MESSAGE);    //THIS IS HOW WE GIVE WARNING MSG
-            return false;
-        } else if (!username.matches("^(.+)@(\\S+)$")) {       //THIS    else if   BLOCK IS TO CHECK  THAT  EMAIL IS  GIVEN  PROPERLY  IN  ITS  STD  FORMAT
-            JOptionPane.showMessageDialog(null, "Please Enter Your Username Properly!!", "WARNING", JOptionPane.WARNING_MESSAGE);
-            return false;
-        }
-
-        if (pwd.equals("")) {
-            JOptionPane.showMessageDialog(null, "Please Enter Your Password", "WARNING", JOptionPane.WARNING_MESSAGE);
-            return false;
-        }
-        if (key.equals("")) {
-            JOptionPane.showMessageDialog(null, "Please Enter Your Login Key", "WARNING", JOptionPane.WARNING_MESSAGE);
-            return false;
-        }
-
-        return true;
+    if (username.equals("")) {      //THIS  IF  BLOCK  IS  TO  CHECK  IF  USERNAME  FIELD  IS  EMPTY
+        JOptionPane.showMessageDialog(null, "Please Enter Your Username !!", "WARNING", JOptionPane.WARNING_MESSAGE);    //THIS IS HOW WE GIVE WARNING MSG
+        return false;
+    } else if (!username.matches("^(.+)@(\\S+)$")) {       //THIS    else if   BLOCK IS TO CHECK  THAT  EMAIL IS  GIVEN  PROPERLY  IN  ITS  STD  FORMAT
+        JOptionPane.showMessageDialog(null, "Please Enter Your Username Properly!!", "WARNING", JOptionPane.WARNING_MESSAGE);
+        return false;
     }
+
+    if (pwd.equals("")) {
+        JOptionPane.showMessageDialog(null, "Please Enter Your Password", "WARNING", JOptionPane.WARNING_MESSAGE);
+        return false;
+    }
+    if (key.equals("")) {
+        JOptionPane.showMessageDialog(null, "Please Enter Your Login Key", "WARNING", JOptionPane.WARNING_MESSAGE);
+        return false;
+    }
+
+    return true;
+}
 
 //FOR HASING USER PASSWORD
-    public static String passwordHash(String password) {
-        try {
-            MessageDigest md = MessageDigest.getInstance("SHA");
-            md.update(password.getBytes());
-            byte[] rbt = md.digest();
-            StringBuilder sb = new StringBuilder();
-            for (byte b : rbt) {
-                sb.append(String.format("%02x", b));
-            }
-            return sb.toString();
-        } catch (Exception e) {
-            e.printStackTrace();
+public static String passwordHash(String password) {
+    try {
+        MessageDigest md = MessageDigest.getInstance("SHA");
+        md.update(password.getBytes());
+        byte[] rbt = md.digest();
+        StringBuilder sb = new StringBuilder();
+        for (byte b : rbt) {
+            sb.append(String.format("%02x", b));
         }
-        return null;
+        return sb.toString();
+    } catch (Exception e) {
+        e.printStackTrace();
     }
+    return null;
+}
 
-    /**
-     * This method is called from within the constructor to initialize the form.
-     * WARNING: Do NOT modify this code. The content of this method is always
-     * regenerated by the Form Editor.
-     */
-    @SuppressWarnings("unchecked")
+/**
+ * This method is called from within the constructor to initialize the form.
+ * WARNING: Do NOT modify this code. The content of this method is always
+ * regenerated by the Form Editor.
+ */
+@SuppressWarnings("unchecked")
     // <editor-fold defaultstate="collapsed" desc="Generated Code">//GEN-BEGIN:initComponents
     private void initComponents() {
 
@@ -459,40 +459,40 @@ public class Login extends javax.swing.JFrame {
         this.dispose();
     }//GEN-LAST:event_lbl_closeMouseClicked
 
-    /**
-     * @param args the command line arguments
-     */
-    public static void main(String args[]) {
-        /* Set the Nimbus look and feel */
-        //<editor-fold defaultstate="collapsed" desc=" Look and feel setting code (optional) ">
-        /* If Nimbus (introduced in Java SE 6) is not available, stay with the default look and feel.
+/**
+ * @param args the command line arguments
+ */
+public static void main(String args[]) {
+    /* Set the Nimbus look and feel */
+    //<editor-fold defaultstate="collapsed" desc=" Look and feel setting code (optional) ">
+    /* If Nimbus (introduced in Java SE 6) is not available, stay with the default look and feel.
          * For details see http://download.oracle.com/javase/tutorial/uiswing/lookandfeel/plaf.html 
-         */
-        try {
-            for (javax.swing.UIManager.LookAndFeelInfo info : javax.swing.UIManager.getInstalledLookAndFeels()) {
-                if ("Nimbus".equals(info.getName())) {
-                    javax.swing.UIManager.setLookAndFeel(info.getClassName());
-                    break;
-                }
+     */
+    try {
+        for (javax.swing.UIManager.LookAndFeelInfo info : javax.swing.UIManager.getInstalledLookAndFeels()) {
+            if ("Nimbus".equals(info.getName())) {
+                javax.swing.UIManager.setLookAndFeel(info.getClassName());
+                break;
             }
-        } catch (ClassNotFoundException ex) {
-            java.util.logging.Logger.getLogger(SignUp.class.getName()).log(java.util.logging.Level.SEVERE, null, ex);
-        } catch (InstantiationException ex) {
-            java.util.logging.Logger.getLogger(SignUp.class.getName()).log(java.util.logging.Level.SEVERE, null, ex);
-        } catch (IllegalAccessException ex) {
-            java.util.logging.Logger.getLogger(SignUp.class.getName()).log(java.util.logging.Level.SEVERE, null, ex);
-        } catch (javax.swing.UnsupportedLookAndFeelException ex) {
-            java.util.logging.Logger.getLogger(SignUp.class.getName()).log(java.util.logging.Level.SEVERE, null, ex);
         }
-        //</editor-fold>
-
-        /* Create and display the form */
-        java.awt.EventQueue.invokeLater(new Runnable() {
-            public void run() {
-                new Login().setVisible(true);
-            }
-        });
+    } catch (ClassNotFoundException ex) {
+        java.util.logging.Logger.getLogger(SignUp.class.getName()).log(java.util.logging.Level.SEVERE, null, ex);
+    } catch (InstantiationException ex) {
+        java.util.logging.Logger.getLogger(SignUp.class.getName()).log(java.util.logging.Level.SEVERE, null, ex);
+    } catch (IllegalAccessException ex) {
+        java.util.logging.Logger.getLogger(SignUp.class.getName()).log(java.util.logging.Level.SEVERE, null, ex);
+    } catch (javax.swing.UnsupportedLookAndFeelException ex) {
+        java.util.logging.Logger.getLogger(SignUp.class.getName()).log(java.util.logging.Level.SEVERE, null, ex);
     }
+    //</editor-fold>
+
+    /* Create and display the form */
+    java.awt.EventQueue.invokeLater(new Runnable() {
+    public void run() {
+        new Login().setVisible(true);
+    }
+    });
+}
 
     // Variables declaration - do not modify//GEN-BEGIN:variables
     private rojerusan.RSMaterialButtonCircle btn_login;
